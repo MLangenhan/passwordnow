@@ -1,0 +1,15 @@
+{
+  "Rust doc comment": {
+    "scope": "rust",
+    "prefix": "docfn",
+    "description": "Documentation template for a function",
+    "body": [
+      "/// # Arguments",
+      "/// * `${1:name}` - ${2:Description}",
+      "/// # Returns",
+      "/// ${3:Description}",
+      "/// # Does",
+      "/// ${4:Description}",
+    ]
+  }
+}
