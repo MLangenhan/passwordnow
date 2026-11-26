@@ -1,6 +1,18 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+//! Secret values that are wiped from memory when they are no longer needed.
+
 use std::fmt;
 
 use zeroize::Zeroize;
+
+/// A fixed-size byte buffer for secret data such as passwords and keys.
+///
+/// Guarantees:
+/// - The contents are overwritten with zeros when the value is dropped.
+/// - `Debug` never prints the contents.
+/// - There is no `Clone`, `Display` or `PartialEq`, so secrets can't be
+///   copied, printed or compared (which could leak timing) by accident.
 
 pub struct SecretBytes {
     bytes: Box<[u8]>,
