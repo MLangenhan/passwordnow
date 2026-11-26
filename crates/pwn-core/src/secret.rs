@@ -91,3 +91,44 @@ impl fmt::Debug for SecretBytes {
         write!(f, "SecretBytes([REDACTED; {} bytes])", self.bytes.len())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn take_from_copies_and_wipes_source() {
+        let mut source = *b"hunter2";
+        let secret = SecretBytes::take_from(&mut source);
+
+        assert_eq!(secret.expose_secret(), b"hunter2");
+        assert_eq!(source, [0u8; 7]);
+    }
+
+    #[test]
+    fn debug_output_does_not_contain_secret() {
+        let mut source = *b"hunter2";
+        let secret = SecretBytes::take_from(&mut source);
+
+        let printed = format!("{secret:?}"); // short for {:?}(secret)
+
+        assert!(!printed.contains("hunter2"));
+        assert_eq!(printed, "SecretBytes([REDACTED; 7 bytes])");
+    }
+
+    #[test]
+    fn zeroed_has_requested_length_and_only_zeroes() {
+        let secret = SecretBytes::zeroed(32);
+
+        assert_eq!(secret.len(), 32);
+        assert!(secret.expose_secret().iter().all(|&b| b == 0));
+    }
+
+    #[test]
+    fn can_be_written_through_expose_secret_mut() {
+        let mut secret = SecretBytes::zeroed(3);
+        secret.expose_secret_mut().copy_from_slice(&[1, 2, 3]);
+
+        assert_eq!(secret.expose_secret(), &[1, 2, 3]);
+    }
+}
