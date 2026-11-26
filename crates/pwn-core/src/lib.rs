@@ -1,14 +1,9 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+//! PasswordNow core library: cryptography, vault model and sync logic.
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+#![forbid(unsafe_code)]
+
+pub mod secret;
+
+pub use secret::SecretBytes;
