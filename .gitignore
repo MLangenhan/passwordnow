@@ -1,2 +1,10 @@
+# Build output
 /target
 /build
+/out
+
+# Visual Studio (local cache, index, personal settings)
+/.vs
+
+# Personal CMake presets (each developer's own overrides)
+CMakeUserPresets.json

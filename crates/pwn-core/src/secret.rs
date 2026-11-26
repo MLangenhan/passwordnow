@@ -13,7 +13,6 @@ use zeroize::Zeroize;
 /// - `Debug` never prints the contents.
 /// - There is no `Clone`, `Display` or `PartialEq`, so secrets can't be
 ///   copied, printed or compared (which could leak timing) by accident.
-
 pub struct SecretBytes {
     bytes: Box<[u8]>,
 }
