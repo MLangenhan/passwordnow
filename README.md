@@ -158,7 +158,7 @@ The full analysis will be in [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md).
                     │ (cxx bridge)     │                  │
   ┌─────────────────▼──────────┐  Extension popup   Sync server (Rust)
   │ Desktop app (C++20, Qt 6)  │  Leptos → WASM     axum + sqlx
-  │  UI: Qt Widgets            │       │            PostgreSQL
+  │  UI: Qt Quick (QML)        │       │            PostgreSQL
   │  pwn-platform: keystore,   │       │
   │  biometrics, mlock,        │       │
   │  lock events, clipboard    │       │
@@ -174,7 +174,7 @@ The full analysis will be in [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md).
 |---|---|---|
 | Core library | Rust | RustCrypto, `argon2`, `chacha20poly1305`, `opaque-ke`, `zeroize` |
 | Core ↔ C++ bridge | Rust + C++ | [`cxx`](https://cxx.rs), built from CMake via [Corrosion](https://github.com/corrosion-rs/corrosion) |
-| Desktop app | C++20 | Qt 6 (Widgets), CMake |
+| Desktop app | C++20 + QML | Qt 6 (Qt Quick / QML), CMake |
 | Platform layer | C++20 | OS keystores (Keychain, Windows Hello, Secret Service), memory locking, screen-lock events, clipboard |
 | Native messaging host | C++20 | CMake. A thin relay between browser and desktop app. |
 | Browser extension | Rust + TS | Manifest V3; popup in Leptos/WASM, minimal TypeScript content script |
@@ -195,10 +195,15 @@ The full analysis will be in [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md).
   APIs (Qt, Win32, POSIX, Apple frameworks) are C/C++ anyway. These layers **don't
   interpret untrusted data**. For example, `pwn-host` forwards length-limited
   messages without parsing them, and the Rust side does all validation.
-- **No web engine in the desktop app.** Qt Widgets runs no HTML or JavaScript,
-  which removes the XSS class of bugs that webview-based apps have. All labels
-  showing user data are forced to `Qt::PlainText`, so Qt never interprets them as
+- **No web engine in the desktop app.** The UI is Qt Quick (QML), not HTML in a
+  webview. All QML is compiled into the binary (`qt_add_qml_module`, `qmlsc`);
+  nothing is ever loaded from the network or from user data. Every text element
+  showing user data is forced to `Text.PlainText`, so Qt never interprets it as
   rich text.
+- **Secrets stay out of the QML/JavaScript engine where possible.** QML strings
+  live in a garbage-collected heap that can't be reliably wiped. Passwords are
+  masked by default, and copy-to-clipboard runs entirely in C++ straight from a
+  `SecretBuffer`. The password only enters QML when you explicitly reveal it.
 - The C++ code is held to a strict standard: modern C++20 (RAII, no raw
   `new`/`delete`), `-Wall -Wextra -Werror`, compiler hardening flags,
   AddressSanitizer/UBSan in CI, `clang-tidy`, and fuzzing of every input path.
